@@ -28,7 +28,7 @@ void WindowClass::Draw(std::string_view label)
 
     //draw other boxes/buttons
     DrawInputTextFields();
-    
+
     ImGui::End();  //must close what is opened
 }
 
@@ -70,9 +70,13 @@ void WindowClass::LoadFromCsvFile(std::string_view filename)
 
 void WindowClass::DrawInputTextFields()
 {
-    ImGui::InputText("Matter File Name: ", matterFileNameBuffer, sizeof(matterFileNameBuffer));
+    ImGui::Text("Matter File Name");
+    ImGui::SameLine();
+    ImGui::InputText("###MatterFileName: ", matterFileNameBuffer, sizeof(matterFileNameBuffer));
 
-    ImGui::InputText("Events File Name: ", eventFileNameBuffer, sizeof(eventFileNameBuffer));
+    ImGui::Text("Events File Name");
+    ImGui::SameLine();
+    ImGui::InputText("###EventsFileName: ", eventFileNameBuffer, sizeof(eventFileNameBuffer));
 }
 
 
