@@ -12,6 +12,8 @@ private:
     void SaveToCsvFile(std::string_view filename);
     void LoadFromCsvFile(std::string_view filename);
     void DrawInputTextFields();
+    void DrawMonthComboBox();
+    void DrawYearComboBox();
 
 private:
     char matterFileNameBuffer[65]{};  //InputText expects char array

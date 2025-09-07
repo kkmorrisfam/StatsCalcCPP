@@ -28,6 +28,8 @@ void WindowClass::Draw(std::string_view label)
 
     //draw other boxes/buttons
     DrawInputTextFields();
+    DrawMonthComboBox();
+    DrawYearComboBox();
 
     ImGui::End();  //must close what is opened
 }
@@ -77,8 +79,57 @@ void WindowClass::DrawInputTextFields()
     ImGui::Text("Events File Name");
     ImGui::SameLine();
     ImGui::InputText("###EventsFileName: ", eventFileNameBuffer, sizeof(eventFileNameBuffer));
+
+    //add input fields for month, year and new file name to save to
 }
 
+void WindowClass::DrawMonthComboBox()
+{
+        //from https://github.com/ocornut/imgui/blob/02af06ea5f57696b93f0dfe77a9e2525522ba76e/imgui_demo.cpp#L1313C1-L1331C10
+        const char* months[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "Decmeber"};
+        static int month_selected_idx = 0; // Here we store our selection data as an index. January = 0.
+
+        // Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from months[])
+        const char* combo_preview_value = months[month_selected_idx];
+        if (ImGui::BeginCombo("Month", combo_preview_value))
+        {
+            for (int n = 0; n < IM_ARRAYSIZE(months); n++)
+            {
+                const bool is_selected = (month_selected_idx == n);
+                if (ImGui::Selectable(months[n], is_selected))  //need flags?
+                    month_selected_idx = n;
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+}
+
+void WindowClass::DrawYearComboBox()
+{
+        //from https://github.com/ocornut/imgui/blob/02af06ea5f57696b93f0dfe77a9e2525522ba76e/imgui_demo.cpp#L1313C1-L1331C10
+        const char* years[] = {"2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"};
+        static int year_selected_idx = 0; // Here we store our selection data as an index. January = 0.
+
+        // Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from months[])
+        const char* combo_preview_value = years[year_selected_idx];
+        if (ImGui::BeginCombo("Year", combo_preview_value))
+        {
+            for (int n = 0; n < IM_ARRAYSIZE(years); n++)
+            {
+                const bool is_selected = (year_selected_idx == n);
+                if (ImGui::Selectable(years[n], is_selected))  //need flags?
+                    year_selected_idx = n;
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+}
 
 void render(WindowClass &window_obj)
 {
