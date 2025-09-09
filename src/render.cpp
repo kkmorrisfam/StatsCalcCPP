@@ -148,6 +148,8 @@ std::string_view WindowClass::Trim(std::string_view str)
     //same for the end of the string, takes white space out of the string_view at back
     while (!str.empty() && std::isspace(static_cast<unsigned char>(str.back())))
         str.remove_suffix(1);
+
+        return str;
 }
 
 //check to see if the values in the string are numbers
@@ -236,9 +238,12 @@ void WindowClass::TestFunction()
     // std::cout << "This is a test output. addresses: \n" <<  << " / " << yearPtr << std::endl;
     // std::cout << "This is a test output. values:  \n" << *monthPtr << " / " << *yearPtr << std::endl;
 
+    std::string_view testDate = "01/01/2021";
+    auto testResult = WindowClass::GetMonthYear(testDate);
+    std::cout << "This is testing my GetMonthYear function with string '01/01/2020':  " << testResult->month
+    << " & "    << testResult->year << std::endl;
 
 }
-
 
 
 void render(WindowClass &window_obj)
