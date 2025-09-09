@@ -3,8 +3,9 @@
 #include <fmt/format.h>
 #include <imgui.h>
 #include <implot.h>
-
+#include <iostream>
 #include "render.hpp"
+#include <charconv>
 
 
 /**
@@ -30,6 +31,7 @@ void WindowClass::Draw(std::string_view label)
     DrawInputTextFields();
     DrawMonthComboBox();
     DrawYearComboBox();
+    TestFunction();
 
     ImGui::End();  //must close what is opened
 }
@@ -86,8 +88,9 @@ void WindowClass::DrawInputTextFields()
 void WindowClass::DrawMonthComboBox()
 {
         //from https://github.com/ocornut/imgui/blob/02af06ea5f57696b93f0dfe77a9e2525522ba76e/imgui_demo.cpp#L1313C1-L1331C10
-        const char* months[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "Decmeber"};
-        static int month_selected_idx = 0; // Here we store our selection data as an index. January = 0.
+        // const char* months[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "Decmeber"};
+        // static int month_selected_idx = 0; // Here we store our selection data as an index. January = 0.
+        // monthPtr = &month_selected_idx;
 
         // Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from months[])
         const char* combo_preview_value = months[month_selected_idx];
@@ -110,8 +113,9 @@ void WindowClass::DrawMonthComboBox()
 void WindowClass::DrawYearComboBox()
 {
         //from https://github.com/ocornut/imgui/blob/02af06ea5f57696b93f0dfe77a9e2525522ba76e/imgui_demo.cpp#L1313C1-L1331C10
-        const char* years[] = {"2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"};
-        static int year_selected_idx = 0; // Here we store our selection data as an index. January = 0.
+        // const char* years[] = {"2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"};
+        // static int year_selected_idx = 0; // Here we store our selection data as an index. January = 0.
+        // yearPtr = &year_selected_idx;
 
         // Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from months[])
         const char* combo_preview_value = years[year_selected_idx];
@@ -130,6 +134,112 @@ void WindowClass::DrawYearComboBox()
             ImGui::EndCombo();
         }
 }
+
+//helper functions
+//uses string_view to avoid making a copy of the string
+std::string_view WindowClass::Trim(std::string_view str)
+{
+    //moves the string view starting point to appear to remove whitespace from front of the string
+    //advances one char at a time in the while loop, static_cast for platforms where char is signed
+    //does not modify the original string.
+    while (!str.empty() && std::isspace(static_cast<unsigned char>(str.front())))
+        str.remove_prefix(1);
+
+    //same for the end of the string, takes white space out of the string_view at back
+    while (!str.empty() && std::isspace(static_cast<unsigned char>(str.back())))
+        str.remove_suffix(1);
+}
+
+//check to see if the values in the string are numbers
+bool WindowClass::CheckDigits(std::string_view str)
+{
+    if(str.empty()) return false;  //if string is empty, return false
+
+    //for each character in str
+    for (char c : str)
+    {
+        //if the char value is less than 0 or more than 9, it's not a digit but an alpha char
+        //char data type is an int representing a character value
+        if (c < '0' || c > '9')
+        return false;
+    }
+
+    //else return true
+    return true;
+}
+
+int WindowClass::SelectedMonthNumber()
+{
+   //convert selected month string value to number
+    return std::atoi(months[month_selected_idx]);
+}
+
+int WindowClass::SelectedYearNumber()
+{
+    //convert selected year string value to number
+    return std::atoi(years[year_selected_idx]);
+}
+
+std::optional<MonthYear> WindowClass::GetMonthYear(std::string_view date)
+{
+    //changes string_view to view string without leading and ending whitespace
+    date = Trim(date);
+
+    //get position of first and second '/' in field
+    auto s1 = date.find('/');
+    //if s1 has no position or not found; lets std::optional know that value not found
+    //if no '/' found, return from function with no value
+    if (s1 == std::string_view::npos)
+        return std::nullopt;
+    //searches for the next '/' in date and starts right after the first instance at s1: s1+1 is start position
+    auto s2 = date.find('/', s1 + 1);
+    //if there's not a 2nd slash or there's more than 2, return
+    if (s2 == std::string_view::npos || date.find('/', s2+1) != std::string_view::npos)
+        return std::nullopt;
+
+    //get substrings from date positions for month, day and year
+    //substr takes starting and ending position
+    auto monthStr = Trim(date.substr(0,s1));
+    auto dayStr = Trim(date.substr(s1+1, s2-s1-1)); //not used, but may need it later
+    auto yearStr = Trim(date.substr(s2+1));
+
+    //if substrings are not digits, return
+    if (!CheckDigits(monthStr) || !CheckDigits(dayStr) || !CheckDigits(yearStr))
+        return std::nullopt;
+
+    int monthInt = 0;
+    int yearInt = 0;
+
+    //get data from string view, convert to int
+    std::from_chars(monthStr.data(), monthStr.data() + monthStr.size(), monthInt);
+    std::from_chars(yearStr.data(), yearStr.data() + yearStr.size(), yearInt);
+
+    //if year is in 2 digit format, convert to 4 digit
+    if (yearStr.size() <= 2)
+    {
+        yearInt = yearInt + 2000;  //the only dates I will have are in the 2000's
+    }
+
+    //check and see if the month value is valid
+    if (monthInt < 1 || monthInt > 12)
+        return std::nullopt;
+
+    //return a MonthYear structure with month and year values.
+    return MonthYear{monthInt, yearInt};
+}
+
+
+
+
+void WindowClass::TestFunction()
+{
+    // std::cout << "This is a test output. addresses: \n" <<  << " / " << yearPtr << std::endl;
+    // std::cout << "This is a test output. values:  \n" << *monthPtr << " / " << *yearPtr << std::endl;
+
+
+}
+
+
 
 void render(WindowClass &window_obj)
 {
