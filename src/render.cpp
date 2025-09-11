@@ -1,11 +1,17 @@
 #include <iostream>
+#include <fstream>
+#include <filesystem>
+#include <vector>
+#include <map>
+#include <sstream>
 
 #include <fmt/format.h>
 #include <imgui.h>
 #include <implot.h>
-#include <iostream>
+
 #include "render.hpp"
 #include <charconv>
+
 
 
 /**
@@ -31,6 +37,7 @@ void WindowClass::Draw(std::string_view label)
     DrawInputTextFields();
     DrawMonthComboBox();
     DrawYearComboBox();
+    DrawInputFieldForResultFile();
     TestFunction();
 
     ImGui::End();  //must close what is opened
@@ -67,9 +74,38 @@ void WindowClass::SaveToCsvFile(std::string_view filename)
 {
 
 }
-void WindowClass::LoadFromCsvFile(std::string_view filename)
+
+//ImGui text fields uses string buffers, so char*, string_view or path need to be used
+void WindowClass::LoadFromCsvFile(std::filesystem::path filename)
+{
+    std::cout << "Current Working Directory: " << std::filesystem::current_path() << "\n";
+    std::cout << "Filename: " << filename << std::endl;
+
+
+    //open & parse
+    //validate
+    //filter & normalize
+    //store in member variables
+
+
+    //get header
+}
+
+//structure row data into a vector of maps
+std::vector<std::map<std::string, std::string>> WindowClass::ReadCsvRows(const std::filesystem::path& filename)
 {
 
+}
+
+//filter vector of maps into values with just "APCON" in column
+std::vector<std::map<std::string, std::string>> FilterApcon(const std::vector<std::map<std::string, std::string>> rows)
+{
+
+}
+
+void WriteToTextFile(std::string_view filename)
+{
+    // auto fileWithExt = filename + ".txt";  //add extention for text file
 }
 
 void WindowClass::DrawInputTextFields()
@@ -82,9 +118,9 @@ void WindowClass::DrawInputTextFields()
     ImGui::SameLine();
     ImGui::InputText("###EventsFileName: ", eventFileNameBuffer, sizeof(eventFileNameBuffer));
 
-    //add input fields for month, year and new file name to save to
-}
 
+}
+    //add input fields for month, year
 void WindowClass::DrawMonthComboBox()
 {
         //from https://github.com/ocornut/imgui/blob/02af06ea5f57696b93f0dfe77a9e2525522ba76e/imgui_demo.cpp#L1313C1-L1331C10
@@ -135,6 +171,18 @@ void WindowClass::DrawYearComboBox()
         }
 }
 
+//add field for name of text file that program will create
+void WindowClass::DrawInputFieldForResultFile()
+{
+    ImGui::Text("File name for results output (don't include file extension):");
+    ImGui::SameLine();
+    ImGui::InputText("###ResultsOutputFileName: ", resultsOutputFileNameBuffer, sizeof(resultsOutputFileNameBuffer));
+
+}
+
+
+
+
 //helper functions
 //uses string_view to avoid making a copy of the string
 std::string_view WindowClass::Trim(std::string_view str)
@@ -172,8 +220,8 @@ bool WindowClass::CheckDigits(std::string_view str)
 
 int WindowClass::SelectedMonthNumber()
 {
-   //convert selected month string value to number
-    return std::atoi(months[month_selected_idx]);
+   //convert selected month index to month of year (Jan index = 0, Jan month num = 1)
+    return month_selected_idx + 1 ;
 }
 
 int WindowClass::SelectedYearNumber()
@@ -238,10 +286,24 @@ void WindowClass::TestFunction()
     // std::cout << "This is a test output. addresses: \n" <<  << " / " << yearPtr << std::endl;
     // std::cout << "This is a test output. values:  \n" << *monthPtr << " / " << *yearPtr << std::endl;
 
-    std::string_view testDate = "01/01/2021";
+    //works with both 2 and 4 year dates
+    std::string_view testDate = "01/01/21";
     auto testResult = WindowClass::GetMonthYear(testDate);
-    std::cout << "This is testing my GetMonthYear function with string '01/01/2020':  " << testResult->month
+    std::cout << "This is testing my GetMonthYear function with string '01/01/21':  " << testResult->month
     << " & "    << testResult->year << std::endl;
+
+    if (WindowClass::SelectedMonthNumber() == testResult->month)
+    {
+        std::cout << "Selected Month: "
+        << WindowClass::SelectedMonthNumber() << "\n"
+        << "Test month: "
+        << testResult->month;
+    }
+
+    std::cout << "Current Working Directory: " << std::filesystem::current_path() << "\n";
+
+    LoadFromCsvFile(std::filesystem::path{matterFileNameBuffer});
+
 
 }
 
