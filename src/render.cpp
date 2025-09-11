@@ -91,14 +91,66 @@ void WindowClass::LoadFromCsvFile(std::filesystem::path filename)
     //get header
 }
 
-//structure row data into a vector of maps
-std::vector<std::map<std::string, std::string>> WindowClass::ReadCsvRows(const std::filesystem::path& filename)
+//structure row data into a vector of maps/dictionary
+std::vector<Maps> WindowClass::ReadCsvRows(const std::filesystem::path& filename)
 {
+    //structure to fill and return
+    std::vector<Maps> data;
+    //start a file stream with filename
+    std::ifstream file(filename);
 
+    //double check
+    if(!file.is_open())
+    {
+        std::cerr << "Could not open: " << filename << "\n";
+        return;
+    }
+
+    //collect column header row
+    std::string line;
+    std::vector<std::string> headers;
+
+    //read header row
+    if(std::getline(file, line))
+    {
+        std::stringstream ss(line);
+        std::string header;
+        while (std::getline(ss, header, ','))
+        {
+            headers.push_back(header);
+        }
+    }
+    else
+    {
+        std::cerr << "Error: CSV file is empty or header cannot be read." << std::endl;
+        return data;
+    }
+
+    //collect rows
+    while (std::getline(file, line))
+    {
+        std::stringstream ss(line);
+        std::string cell;
+        std::map<std::string, std::string> row;
+        int columnIndex = 0;
+
+        while(std::getline(ss, cell, ',') && columnIndex < headers.size())
+        {
+            row[headers[columnIndex]] = cell;
+            columnIndex++;
+        }
+
+        //add row to data
+        data.push_back(row);
+
+    }
+
+    file.close();
+    return data;
 }
 
 //filter vector of maps into values with just "APCON" in column
-std::vector<std::map<std::string, std::string>> FilterApcon(const std::vector<std::map<std::string, std::string>> rows)
+std::vector<Maps> FilterApcon(const std::vector<Maps> rows)
 {
 
 }

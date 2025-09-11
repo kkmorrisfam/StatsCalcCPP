@@ -5,6 +5,8 @@
 #include <optional>
 #include <filesystem>
 
+//alias for maps structure
+using Maps = std::map<std::string, std::string>;
 struct MonthYear {int month; int year; };
 
 class WindowClass
@@ -15,8 +17,8 @@ public:
 private:
     void SaveToCsvFile(std::string_view filename);
     void LoadFromCsvFile(std::filesystem::path filename);
-    std::vector<std::map<std::string, std::string>> ReadCsvRows(const std::filesystem::path& filename);
-    std::vector<std::map<std::string, std::string>> FilterApcon(const std::vector<std::map<std::string, std::string>> rows);
+    std::vector<Maps> ReadCsvRows(const std::filesystem::path& filename);
+    std::vector<Maps> FilterApcon(const std::vector<std::map<std::string, std::string>> rows);
 
     void DrawInputTextFields();
     void DrawMonthComboBox();
