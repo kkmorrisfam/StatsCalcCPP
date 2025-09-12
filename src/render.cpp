@@ -14,14 +14,16 @@
 
 #include "render.hpp"
 #include <charconv>
+#include <array>
 
 
+static constexpr std::array<std::string_view, 7> CHARGES_LIST{
+    "FELONY","MISDO","PV","PRCS","PRF","JUV","OTHER"
+};
 
 /**
  * draw window
  * call any class functions that are drawn in the window
- *
- *
  *
  */
 void WindowClass::Draw(std::string_view label)
@@ -281,6 +283,11 @@ void WindowClass::TestFunction()
                 sizeof(matterFileNameBuffer)-1);
     matterFileNameBuffer[sizeof(matterFileNameBuffer)-1] = '\0';
 
+    std::strncpy(eventFileNameBuffer,
+                R"(C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\events-list.csv)",
+                sizeof(eventFileNameBuffer)-1);
+    eventFileNameBuffer[sizeof(eventFileNameBuffer)-1] = '\0';
+
     WriteToTextFile(R"(C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\matters_summary)");
 
 }
@@ -401,8 +408,16 @@ void WindowClass::ToUpperCase(std::string& string)
 void WindowClass::WriteToTextFile(std::string_view filename)
 {
     //to test - read and filter file
-    auto rows = ReadCsvRows(matterFileNameBuffer);
-    auto apcon = FilterApcon(rows);
+    auto matterRows = ReadCsvRows(matterFileNameBuffer);
+    auto eventRows = ReadCsvRows(eventFileNameBuffer);
+    auto filteredMatters = FilterApcon(matterRows);
+    auto filteredEvents = FilterApcon(eventRows);
+
+    int inputMonth = SelectedMonthNumber();
+    int inputYear = SelectedYearNumber();
+    auto closedMatters = GetClosedCases(filteredMatters, inputMonth, inputYear);
+    auto closedEvents = GetClosedCases(filteredEvents, inputMonth, inputYear);
+
 
     std::filesystem::path filePath = filename;
     if (filePath.extension() != ".txt")
@@ -437,17 +452,27 @@ void WindowClass::WriteToTextFile(std::string_view filename)
     out << "Matters CSV: " << matterFileNameBuffer << std::endl;
     out << "Matters csv full path: " << std::filesystem::absolute(matterPath) << std::endl << std::endl;
 
-    out << "Total data rows: " << rows.size()  << std::endl;
-    out << "Filtered by APCON size: " << apcon.size() << std::endl;
+    out << "Total data rows: " << matterRows.size()  << std::endl;
+    out << "Filtered by APCON size: " << filteredMatters.size() << std::endl;
 
-    if (!apcon.empty())
+    if (!filteredMatters.empty())
     {
         out << "\nFirst APCON row keys:\n";
-        for (const auto& kv: apcon.front())
+        for (const auto& kv: filteredMatters.front())
         {
             out << " - " << kv.first << std::endl;
         }
     }
+
+    //get data for report
+
+    //iterate through Charges array
+    for (auto charges : CHARGES_LIST)
+    {
+        int16_t closedChargesCount = GetChargeCount(closedMatters, charges);
+        out << charges << ":  " << closedChargesCount << '\n';
+    }
+
 
     out << std::flush;
     std::cout << "Wrote Summary to: " << filePath << std::endl;
@@ -455,7 +480,7 @@ void WindowClass::WriteToTextFile(std::string_view filename)
 }
 
 
-std::vector<Maps> WindowClass::GetClosedCases(const std::vector<Maps>& matters, int inputMonth, int inputYear)
+std::vector<Maps> WindowClass::GetClosedCases(const std::vector<Maps>& list, int inputMonth, int inputYear)
 {
     //parameter: matters already filtered by APCON and input month and year
     //iterarates throught the vector of maps and appends to a new vector of maps where
@@ -465,7 +490,44 @@ std::vector<Maps> WindowClass::GetClosedCases(const std::vector<Maps>& matters, 
     //create an empty vector of maps to fill and return
     std::vector<Maps> data;
     //pre-allocate memory for data before loop
-     data.reserve(matters.size());
+    data.reserve(list.size());
+
+    //iterate through each map to filter on month and year
+    for (const auto&r : list)
+    {
+        //lookup on key "Closed" - column header
+        auto itClosed = r.find("Closed");
+
+        // if Closed" key not found & key "Closed" value empty, skip to next iteration
+        if(itClosed == r.end() || itClosed->second.empty()) continue;
+
+        //if there's a value and can parse into MonthYear struct, then
+        if(auto monYear = GetMonthYear(itClosed->second))
+        {
+            //get the value from "Closed" key, put results in MonthYear structure variable
+            //compare input with column data
+            if (monYear->month == inputMonth && monYear->year == inputYear)
+            {
+                data.push_back(r); //add "row" or map to vector
+            }
+
+        } else
+        {
+            std::cerr << "Bad Closed date: " <<itClosed->second<< std::endl;
+
+        }
+
+    }
+
+    return data;  //return all matching "rows" as maps in vector
+}
+/*
+std::vector<Maps> WindowClass::GetClosedEvents(const std::vector<Maps>& events, MonthYear monthYear)
+{
+    //create an empty vector of maps to fill and return
+    std::vector<Maps> data;
+    //pre-allocate memory for data before loop
+    data.reserve(events.size());
 
     //iterate through each map to filter on month and year
     for (const auto&r : matters)
@@ -486,17 +548,10 @@ std::vector<Maps> WindowClass::GetClosedCases(const std::vector<Maps>& matters, 
         }
     }
 
-    return data;  //return all matching "rows" as maps in vector
-}
-
-std::vector<Maps> WindowClass::GetClosedEvents(const std::vector<Maps>& events, MonthYear monthYear)
-{
-    //create an empty vector of maps to fill and return
-    std::vector<Maps> data;
 
     return data;  //return all matching "rows" as maps in vector
 }
-
+*/
 std::vector<Maps> WindowClass::GetOpenedCases(const std::vector<Maps>& matters, MonthYear monthYear)
 {
     //create an empty vector of maps to fill and return
@@ -505,11 +560,30 @@ std::vector<Maps> WindowClass::GetOpenedCases(const std::vector<Maps>& matters, 
     return data;  //return all matching "rows" as maps in vector
 }
 
-int16_t WindowClass::GetChargeCount(const std::vector<Maps>& matters, std::string charge)
+int16_t WindowClass::GetChargeCount(const std::vector<Maps>& matters, std::string_view charge)
 {
     //create an count variable to return
     int16_t count = 0;
 
+    //normalize string for comparison
+    std::string compare(charge);
+    ToUpperCase(compare);
+
+    //iterate through each "row" in matters
+    for (const auto& r : matters)
+    {
+        auto itCharges = r.find("Charges"); //find "Charges" key in row
+        // if "Charges" key found & key "Charges" value not empty, continue
+        if (itCharges != r.end() && !itCharges -> second.empty())
+        {
+            std::string value = itCharges->second; //get value at key
+            ToUpperCase(value); //normalize
+            if(value == compare)
+            {
+                count++;
+            }
+        }
+    }
     return count;
 }
 

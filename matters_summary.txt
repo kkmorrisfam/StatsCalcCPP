@@ -1,4 +1,4 @@
-Summary generated: 2025-09-1120:13:19
+Summary generated: 2025-09-1214:12:33
 Matters CSV: C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\matters-list.csv
 Matters csv full path: "C:\\Users\\Kerri\\Documents\\BYU 310\\StatsCalcCPP\\matters-list.csv"
 
@@ -11,3 +11,10 @@ First APCON row keys:
  - Charges
  - Closed
  - Opened
+FELONY:  0
+MISDO:  0
+PV:  0
+PRCS:  0
+PRF:  0
+JUV:  0
+OTHER:  0
