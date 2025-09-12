@@ -18,7 +18,7 @@ public:
     void Draw(std::string_view label);
 
 private:
-    void SaveToCsvFile(std::string_view filename);
+
     std::vector<Maps> LoadFromCsvFile(const std::filesystem::path& filename);
     std::vector<Maps> ReadCsvRows(const std::filesystem::path& filename);
     std::vector<Maps> FilterApcon(const std::vector<Maps>& rows);
@@ -28,6 +28,7 @@ private:
     void DrawYearComboBox();
     void DrawInputFieldForResultFile();
     void DrawWriteFileButton();
+    bool ReadyToGenerate() const;
 
     //optional because if there's no date in the field, we'll just skip that row
     std::optional<MonthYear> GetMonthYear(std::string_view date);
@@ -50,6 +51,7 @@ private:
 
 
     void TestFunction();
+    void TestChargeOut(const std::vector<Maps>& rows);
 
 
 private:

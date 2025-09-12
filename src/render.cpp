@@ -44,6 +44,7 @@ void WindowClass::Draw(std::string_view label)
     DrawMonthComboBox();
     DrawYearComboBox();
     DrawInputFieldForResultFile();
+    DrawWriteFileButton();
 
 
     // TestFunction();
@@ -151,6 +152,38 @@ void WindowClass::DrawInputFieldForResultFile()
     ImGui::SameLine();
     ImGui::InputText("###ResultsOutputFileName: ", resultsOutputFileNameBuffer, sizeof(resultsOutputFileNameBuffer));
 
+}
+
+void WindowClass::DrawWriteFileButton()
+{
+    //check to see if all file fields are filled
+    const bool ready = ReadyToGenerate();
+    //if not ready, then disable text on button
+    if (!ready)
+    {
+        ImGui::TextDisabled("Select both CSV files and an output name.");
+    }
+
+    //start the text disabled block
+    ImGui::BeginDisabled(!ready);
+    //generate button to generate report
+    if(ImGui::Button("Generate Report", ImVec2(200, 100)))
+    {
+        WriteToTextFile(resultsOutputFileNameBuffer);
+        // WriteToTextFile(R"(C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\matters_summary)");
+    }
+    //need to end text disabled block.
+    ImGui::EndDisabled();
+}
+
+bool WindowClass::ReadyToGenerate() const
+{
+    //check to see if there are values in the buffers
+    //check buffer at index 0 does not equal to null
+    //return true or false
+    return matterFileNameBuffer[0]!= '\0'
+    && eventFileNameBuffer[0]!= '\0'
+    && resultsOutputFileNameBuffer[0]!= '\0';
 }
 
 
@@ -288,14 +321,10 @@ void WindowClass::TestFunction()
                 sizeof(eventFileNameBuffer)-1);
     eventFileNameBuffer[sizeof(eventFileNameBuffer)-1] = '\0';
 
-    WriteToTextFile(R"(C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\matters_summary)");
+    //WriteToTextFile(R"(C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\matters_summary)");
 
 }
 
-void WindowClass::SaveToCsvFile(std::string_view filename)
-{
-
-}
 
 //ImGui text fields uses string buffers, so char*, string_view or path need to be used
 std::vector<Maps> WindowClass::LoadFromCsvFile(const std::filesystem::path& filename)
@@ -463,8 +492,14 @@ void WindowClass::WriteToTextFile(std::string_view filename)
             out << " - " << kv.first << std::endl;
         }
     }
+    std::cout << "matterRows=" << matterRows.size()
+          << " filteredMatters=" << filteredMatters.size()
+          << " closedMatters=" << closedMatters.size() << "\n";
+
+    TestChargeOut(closedMatters);
 
     //get data for report
+
 
     //iterate through Charges array
     for (auto charges : CHARGES_LIST)
@@ -601,6 +636,28 @@ int16_t WindowClass::GetSubtotalHoursByCharges(const std::vector<Maps>& matters,
     int16_t count = 0;
 
     return count;
+}
+
+void WindowClass::TestChargeOut(const std::vector<Maps>& rows)
+{
+    std::map<std::string,int> check;
+    for (auto& r : rows)
+    {
+        auto pair = r.find("Charges");
+        if (pair == r.end() || pair->second.empty())
+        {
+            continue;
+        }
+        auto strView = WindowClass::Trim(pair->second);
+        std::string value(strView);  //create string from string view
+        WindowClass::ToUpperCase(value);
+        ++check[value];
+    }
+    for (auto& [k,v]: check)
+    {
+        std::cout << k << " : " << v << "\n";
+    }
+
 }
 
 void render(WindowClass &window_obj)
