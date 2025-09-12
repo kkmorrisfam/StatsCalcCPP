@@ -369,19 +369,22 @@ std::vector<Maps> WindowClass::FilterApcon(const std::vector<Maps>& rows)
     std::vector<Maps> data;
     data.reserve(rows.size());  //pre-allocate memory for data before loop
 
+    //iterate through each map to filter on column "APCON"
     for (const auto& r : rows)
     {
+        //lookup on key "Casecode"
         auto it = r.find("Casecode");
+        // if no "Casecode" key found or no key "Casecode" value found, continue
         if (it != r.end() && !it -> second.empty()) {
-            std::string val = it->second;
-            WindowClass::ToUpperCase(val);
-            if (val == "APCON")
+            std::string val = it->second; //get the value
+            WindowClass::ToUpperCase(val);  //normalize to uppercase
+            if (val == "APCON") //if value matches
             {
-                data.push_back(r);
+                data.push_back(r);  //add that "row" or map to vector
             }
         }
     }
-    return data;
+    return data;  //return all matching "rows" as maps in vector
 
 }
 
@@ -451,15 +454,80 @@ void WindowClass::WriteToTextFile(std::string_view filename)
 
 }
 
-std::vector<Maps> WindowClass::GetClosedCases(std::vector<Maps> matters, MonthYear monthYear)
-{
 
+std::vector<Maps> WindowClass::GetClosedCases(const std::vector<Maps>& matters, int inputMonth, int inputYear)
+{
+    //parameter: matters already filtered by APCON and input month and year
+    //iterarates throught the vector of maps and appends to a new vector of maps where
+    //the selected month and year is same as in the column for closed
+    //returns a filtered vector of maps
+
+    //create an empty vector of maps to fill and return
+    std::vector<Maps> data;
+    //pre-allocate memory for data before loop
+     data.reserve(matters.size());
+
+    //iterate through each map to filter on month and year
+    for (const auto&r : matters)
+    {
+        //lookup on key "Closed" - column header
+        auto itClosed = r.find("Closed");
+        // if no "Closed" key found or no key "Closed" value found, continue
+        if (itClosed != r.end() && !itClosed -> second.empty())
+        {
+            //get the value from "Closed" key, put results in MonthYear structure variable
+            auto monYear = GetMonthYear(itClosed->second);
+
+            //compare input with column data
+            if (monYear->month == inputMonth && monYear->year == inputYear)
+            {
+                data.push_back(r); //add "row" or map to vector
+            }
+        }
+    }
+
+    return data;  //return all matching "rows" as maps in vector
 }
-std::vector<Maps> WindowClass::GetClosedEvents(std::vector<Maps> events, MonthYear monthYear){}
-std::vector<Maps> WindowClass::GetOpenedCases(std::vector<Maps> matters, MonthYear monthYear){}
-int16_t WindowClass::GetChargeCount(std::vector<Maps> matters, std::string charge){}
-int16_t WindowClass::GetDispositionCount(std::vector<Maps> matters, std::string charge, std::string disposition){}
-int16_t WindowClass::GetSubtotalHoursByCharges(std::vector<Maps> matters, std::string charge){}
+
+std::vector<Maps> WindowClass::GetClosedEvents(const std::vector<Maps>& events, MonthYear monthYear)
+{
+    //create an empty vector of maps to fill and return
+    std::vector<Maps> data;
+
+    return data;  //return all matching "rows" as maps in vector
+}
+
+std::vector<Maps> WindowClass::GetOpenedCases(const std::vector<Maps>& matters, MonthYear monthYear)
+{
+    //create an empty vector of maps to fill and return
+    std::vector<Maps> data;
+
+    return data;  //return all matching "rows" as maps in vector
+}
+
+int16_t WindowClass::GetChargeCount(const std::vector<Maps>& matters, std::string charge)
+{
+    //create an count variable to return
+    int16_t count = 0;
+
+    return count;
+}
+
+int16_t WindowClass::GetDispositionCount(const std::vector<Maps>& matters, std::string charge, std::string disposition)
+{
+    //create an count variable to return
+    int16_t count = 0;
+
+    return count;
+}
+
+int16_t WindowClass::GetSubtotalHoursByCharges(const std::vector<Maps>& matters, std::string charge)
+{
+    //create an count variable to return
+    int16_t count = 0;
+
+    return count;
+}
 
 void render(WindowClass &window_obj)
 {
