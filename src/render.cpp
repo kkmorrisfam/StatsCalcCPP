@@ -4,6 +4,9 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include <cctype>
+#include <chrono>
+#include <iomanip>
 
 #include <fmt/format.h>
 #include <imgui.h>
@@ -17,6 +20,7 @@
 /**
  * draw window
  * call any class functions that are drawn in the window
+ *
  *
  *
  */
@@ -38,7 +42,11 @@ void WindowClass::Draw(std::string_view label)
     DrawMonthComboBox();
     DrawYearComboBox();
     DrawInputFieldForResultFile();
-    TestFunction();
+
+
+    // TestFunction();
+    static bool didTest = false;
+    if (!didTest) { TestFunction(); didTest = true; }
 
     ImGui::End();  //must close what is opened
 }
@@ -70,95 +78,6 @@ void WindowClass::Draw(std::string_view label)
 *12.Helper: get dispostion count of closed cases
 *13.Helper: get subtotal hours by charges of closed cases
  */
-void WindowClass::SaveToCsvFile(std::string_view filename)
-{
-
-}
-
-//ImGui text fields uses string buffers, so char*, string_view or path need to be used
-void WindowClass::LoadFromCsvFile(std::filesystem::path filename)
-{
-    std::cout << "Current Working Directory: " << std::filesystem::current_path() << "\n";
-    std::cout << "Filename: " << filename << std::endl;
-
-
-    //open & parse
-    //validate
-    //filter & normalize
-    //store in member variables
-
-
-    //get header
-}
-
-//structure row data into a vector of maps/dictionary
-std::vector<Maps> WindowClass::ReadCsvRows(const std::filesystem::path& filename)
-{
-    //structure to fill and return
-    std::vector<Maps> data;
-    //start a file stream with filename
-    std::ifstream file(filename);
-
-    //double check
-    if(!file.is_open())
-    {
-        std::cerr << "Could not open: " << filename << "\n";
-        return;
-    }
-
-    //collect column header row
-    std::string line;
-    std::vector<std::string> headers;
-
-    //read header row
-    if(std::getline(file, line))
-    {
-        std::stringstream ss(line);
-        std::string header;
-        while (std::getline(ss, header, ','))
-        {
-            headers.push_back(header);
-        }
-    }
-    else
-    {
-        std::cerr << "Error: CSV file is empty or header cannot be read." << std::endl;
-        return data;
-    }
-
-    //collect rows
-    while (std::getline(file, line))
-    {
-        std::stringstream ss(line);
-        std::string cell;
-        std::map<std::string, std::string> row;
-        int columnIndex = 0;
-
-        while(std::getline(ss, cell, ',') && columnIndex < headers.size())
-        {
-            row[headers[columnIndex]] = cell;
-            columnIndex++;
-        }
-
-        //add row to data
-        data.push_back(row);
-
-    }
-
-    file.close();
-    return data;
-}
-
-//filter vector of maps into values with just "APCON" in column
-std::vector<Maps> FilterApcon(const std::vector<Maps> rows)
-{
-
-}
-
-void WriteToTextFile(std::string_view filename)
-{
-    // auto fileWithExt = filename + ".txt";  //add extention for text file
-}
 
 void WindowClass::DrawInputTextFields()
 {
@@ -349,13 +268,186 @@ void WindowClass::TestFunction()
         std::cout << "Selected Month: "
         << WindowClass::SelectedMonthNumber() << "\n"
         << "Test month: "
-        << testResult->month;
+        << testResult->month << "\n";
     }
 
     std::cout << "Current Working Directory: " << std::filesystem::current_path() << "\n";
 
-    LoadFromCsvFile(std::filesystem::path{matterFileNameBuffer});
+    // const std::filesystem::path src = R"(C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\matters-list.csv)";
+//    auto apcon = LoadFromCsvFile(src);
 
+    std::strncpy(matterFileNameBuffer,
+                R"(C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\matters-list.csv)",
+                sizeof(matterFileNameBuffer)-1);
+    matterFileNameBuffer[sizeof(matterFileNameBuffer)-1] = '\0';
+
+    WriteToTextFile(R"(C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\matters_summary)");
+
+}
+
+void WindowClass::SaveToCsvFile(std::string_view filename)
+{
+
+}
+
+//ImGui text fields uses string buffers, so char*, string_view or path need to be used
+std::vector<Maps> WindowClass::LoadFromCsvFile(const std::filesystem::path& filename)
+{
+    //test - print file and path to terminal
+    std::cout << "Load File, Current Working Directory: " << std::filesystem::current_path() << "\n";
+    std::cout << "Load File, Filename: " << filename << std::endl;
+
+    //open file
+    auto rows = ReadCsvRows(filename);
+    auto apcon = FilterApcon(rows);
+    return apcon;
+
+}
+
+//structure row data into a vector of maps/dictionary
+std::vector<Maps> WindowClass::ReadCsvRows(const std::filesystem::path& filename)
+{
+    //structure to fill and return
+    std::vector<Maps> data;
+    //start a file stream with filename
+    std::ifstream file(filename);
+
+    //double check
+    if(!file.is_open())
+    {
+        std::cerr << "Could not open: " << filename << "\n";
+        return data;
+    }
+
+    //collect column header row
+    std::string line;
+    std::vector<std::string> headers;
+
+    //read header row
+    if(std::getline(file, line))
+    {
+        std::stringstream ss(line);
+        std::string header;
+        while (std::getline(ss, header, ','))
+        {
+            headers.push_back(header);
+        }
+    }
+    else
+    {
+        std::cerr << "Error: CSV file is empty or header cannot be read." << std::endl;
+        return data;
+    }
+
+    //collect rows
+    while (std::getline(file, line))
+    {
+        std::stringstream ss(line);
+        std::string cell;
+        Maps row;
+        int columnIndex = 0;
+
+        while(std::getline(ss, cell, ',') && columnIndex < headers.size())
+        {
+            row[headers[columnIndex]] = cell;
+            columnIndex++;
+        }
+
+        //add row to data
+        data.push_back(row);
+
+    }
+
+    file.close();
+    return data;
+}
+
+//filter vector of maps into values with just "APCON" in column
+std::vector<Maps> WindowClass::FilterApcon(const std::vector<Maps>& rows)
+{
+    //structure for return value
+    std::vector<Maps> data;
+    data.reserve(rows.size());  //pre-allocate memory for data before loop
+
+    for (const auto& r : rows)
+    {
+        auto it = r.find("Casecode");
+        if (it != r.end() && !it -> second.empty()) {
+            std::string val = it->second;
+            WindowClass::ToUpperCase(val);
+            if (val == "APCON")
+            {
+                data.push_back(r);
+            }
+        }
+    }
+    return data;
+
+}
+
+//change string to uppercase characters
+void WindowClass::ToUpperCase(std::string& string)
+{
+
+    for (char& c : string)
+    {
+        c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+    }
+}
+
+void WindowClass::WriteToTextFile(std::string_view filename)
+{
+    //to test - read and filter file
+    auto rows = ReadCsvRows(matterFileNameBuffer);
+    auto apcon = FilterApcon(rows);
+
+    std::filesystem::path filePath = filename;
+    if (filePath.extension() != ".txt")
+    {
+        filePath.replace_extension(".txt");
+    }
+
+    //create parent directory if none given
+    if (!filePath.parent_path().empty())
+    {
+        std::error_code code;
+        std::filesystem::create_directories(filePath.parent_path(), code);
+    }
+
+    //open new file
+    std::ofstream out(filePath);
+    if(!out)
+    {
+        std::cerr << "Failed to open for writing new file: " << filePath << std::endl;
+        return;
+    }
+
+    //create timestamp
+    const auto now = std::chrono::system_clock::now();
+    const auto tt = std::chrono::system_clock::to_time_t(now);
+    out << "Summary generated: " << std::put_time(std::localtime(&tt), "%Y-%m-%d%H:%M:%S") << "\n";
+
+    //create temp report
+    std::filesystem::path matterPath{matterFileNameBuffer};
+
+
+    out << "Matters CSV: " << matterFileNameBuffer << std::endl;
+    out << "Matters csv full path: " << std::filesystem::absolute(matterPath) << std::endl << std::endl;
+
+    out << "Total data rows: " << rows.size()  << std::endl;
+    out << "Filtered by APCON size: " << apcon.size() << std::endl;
+
+    if (!apcon.empty())
+    {
+        out << "\nFirst APCON row keys:\n";
+        for (const auto& kv: apcon.front())
+        {
+            out << " - " << kv.first << std::endl;
+        }
+    }
+
+    out << std::flush;
+    std::cout << "Wrote Summary to: " << filePath << std::endl;
 
 }
 

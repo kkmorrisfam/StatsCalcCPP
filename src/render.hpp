@@ -1,7 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <string_view>
+#include <vector>
+#include <map>
 #include <optional>
 #include <filesystem>
 
@@ -16,14 +19,16 @@ public:
 
 private:
     void SaveToCsvFile(std::string_view filename);
-    void LoadFromCsvFile(std::filesystem::path filename);
+    std::vector<Maps> LoadFromCsvFile(const std::filesystem::path& filename);
     std::vector<Maps> ReadCsvRows(const std::filesystem::path& filename);
-    std::vector<Maps> FilterApcon(const std::vector<std::map<std::string, std::string>> rows);
+    std::vector<Maps> FilterApcon(const std::vector<Maps>& rows);
 
     void DrawInputTextFields();
     void DrawMonthComboBox();
     void DrawYearComboBox();
     void DrawInputFieldForResultFile();
+    void DrawWriteFileButton();
+
     //optional because if there's no date in the field, we'll just skip that row
     std::optional<MonthYear> GetMonthYear(std::string_view date);
     std::string_view Trim(std::string_view str);
@@ -31,15 +36,16 @@ private:
     int SelectedMonthNumber();
     int SelectedYearNumber();
 
-    void WriteToTextFile(std::string_view);
+    void WriteToTextFile(std::string_view filename);
+    void ToUpperCase(std::string& string);
 
     void TestFunction();
 
 
 private:
-    char matterFileNameBuffer[45]{};  //InputText expects char array
-    char eventFileNameBuffer[45]{};
-    char resultsOutputFileNameBuffer[45]{};
+    char matterFileNameBuffer[512]{};  //InputText expects char array
+    char eventFileNameBuffer[512]{};
+    char resultsOutputFileNameBuffer[512]{};
     const char* months[12] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "Decmeber"};
     const char* years[13] = {"2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"};
 
