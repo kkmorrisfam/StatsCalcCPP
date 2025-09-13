@@ -44,8 +44,8 @@ private:
     // std::vector<Maps> GetClosedEvents(const std::vector<Maps>& events, MonthYear monthYear);
     std::vector<Maps> GetOpenedCases(const std::vector<Maps>& matters, MonthYear monthYear);
     int16_t GetChargeCount(const std::vector<Maps>& matters, std::string_view charge);
-    int16_t GetDispositionCount(const std::vector<Maps>& matters, std::string charge, std::string disposition);
-    int16_t GetSubtotalHoursByCharges(const std::vector<Maps>& matters, std::string charge);
+    int16_t GetDispositionCount(const std::vector<Maps>& matters, std::string_view charge, std::string_view disposition);
+    double GetSubtotalHoursByCharges(const std::vector<Maps>& events, std::string_view charge);
 
 
 

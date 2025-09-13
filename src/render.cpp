@@ -17,9 +17,11 @@
 #include <array>
 
 
-static constexpr std::array<std::string_view, 7> CHARGES_LIST{
-    "FELONY","MISDO","PV","PRCS","PRF","JUV","OTHER"
-};
+static constexpr std::array<std::string_view, 7> CHARGES_LIST
+{"FELONY","MISDO","PV","PRCS","PRF","JUV","OTHER"};
+
+static constexpr std::array<std::string_view, 5> PLEA_LIST
+{"DISMIS","DIVERSION","PLEA","TRIAL","OTHER"};
 
 /**
  * draw window
@@ -500,14 +502,45 @@ void WindowClass::WriteToTextFile(std::string_view filename)
 
     //get data for report
 
+    //print open cases count (subtotaled by charge type) for the selected month/year
+    out << "\n" << "Opened Cases for " << inputMonth << "/" << inputYear << "\n";
+//*************print opened cases count by charges
 
-    //iterate through Charges array
+
+
+    //print closed cases count (subtotaled by charge type) for selected month/year
+    out << "\n\n-------------------------------------------------------\n";
+    out << "\n" << "Closed Cases for " << inputMonth << "/" << inputYear << "\n";
+    //iterate through Charges array to print subtotals
     for (auto charges : CHARGES_LIST)
     {
         int16_t closedChargesCount = GetChargeCount(closedMatters, charges);
         out << charges << ":  " << closedChargesCount << '\n';
     }
 
+    //print subtotals of dispostion on closed cases by type
+    out << "\n\n-------------------------------------------------------\n";
+    out << "\n" << "Subtotals by Disposition" << "\n";
+    for (auto charges : CHARGES_LIST)
+    {
+        for (auto plea : PLEA_LIST)
+        {
+            int16_t dispositionCount = GetDispositionCount(closedMatters, charges, plea);
+            //only print if value > 0
+            if (dispositionCount > 0)
+            {
+                out << charges << " and " << plea << ":   " << dispositionCount << "\n";
+            }
+        }
+    }
+
+    //print totals for duration of time spent on cases by charges
+    out << "\n\n-------------------------------------------------------\n";
+    out << "\n" << "Total Time Spent On Cases (by Charges)" << "\n";
+    for (auto charges : CHARGES_LIST)
+    {
+        double subtotal = GetSubtotalHoursByCharges(closedEvents, charges);
+    }
 
     out << std::flush;
     std::cout << "Wrote Summary to: " << filePath << std::endl;
@@ -600,7 +633,7 @@ int16_t WindowClass::GetChargeCount(const std::vector<Maps>& matters, std::strin
     //create an count variable to return
     int16_t count = 0;
 
-    //normalize string for comparison
+    //make string_view into a string for comparison; normalize
     std::string compare(charge);
     ToUpperCase(compare);
 
@@ -622,20 +655,93 @@ int16_t WindowClass::GetChargeCount(const std::vector<Maps>& matters, std::strin
     return count;
 }
 
-int16_t WindowClass::GetDispositionCount(const std::vector<Maps>& matters, std::string charge, std::string disposition)
+int16_t WindowClass::GetDispositionCount(const std::vector<Maps>& matters, std::string_view charge_sv, std::string_view disposition_sv)
 {
     //create an count variable to return
     int16_t count = 0;
 
+    //make a string from a string_view
+    std::string charge(charge_sv);
+    std::string disposition(disposition_sv);
+
+    //iterate through each "row" in matters
+    for (const auto& row : matters)
+    {
+        //look up both columns
+        auto chargesPair = row.find("Charges");
+        auto dispoPair = row.find("Disposition");
+        //if either pair has no valid element (row.end()), continue
+        if (chargesPair == row.end() || dispoPair == row.end()) continue;
+        //if either pair has value = is empty, continue
+        if (chargesPair->second.empty() || dispoPair->second.empty()) continue;
+
+        //trim views, then copy to strings so we can uppercase
+        auto svC = Trim(chargesPair->second);
+        auto svD = Trim(dispoPair->second);
+        //check again for empty
+        if (svC.empty() || svD.empty()) continue;
+
+        //make string from string_view
+        std::string cellCharges(svC);
+        std::string cellDispo(svD);
+        //normalize
+        ToUpperCase(cellCharges);
+        ToUpperCase(cellDispo);
+
+        //check for matching charge and dispo to increment count
+        if (cellCharges==charge && cellDispo == disposition)
+        {
+            ++count;
+        }
+    }
     return count;
 }
 
-int16_t WindowClass::GetSubtotalHoursByCharges(const std::vector<Maps>& matters, std::string charge)
+double WindowClass::GetSubtotalHoursByCharges(const std::vector<Maps>& events, std::string_view charge_sv)
 {
-    //create an count variable to return
-    int16_t count = 0;
+    //create a count variable to return
+    double subtotal = 0;
 
-    return count;
+    //make a string from a string_view
+    std::string charge(charge_sv);
+
+    // iterate through each "row" in matters
+    for (const auto& row : events)
+    {
+        auto itCharges = row.find("Charges"); //find "Charges" in row
+        auto itDuration = row.find("Duration");  //find "Duration" in row
+
+        // if "Charges" key found & key "Charges" value not empty, continue
+        if (itCharges == row.end() || itDuration == row.end()) continue;
+        if (itCharges->second.empty() || itDuration->second.empty()) continue;
+
+
+        // normalize charge cell
+        auto svCharge = Trim(itCharges->second);
+        std::string cellCharge(svCharge);
+        ToUpperCase(cellCharge);
+
+        //if charges don't match with filter, continue to next row
+        if (cellCharge != charge) continue;
+
+        //for rows where charges match
+        // trim and check or digits
+        auto svDur = Trim(itDuration->second);
+        //if (!CheckDigits(svD)) continue; //Can't use now because of "1.5" type numbers
+        //if it's a number, make it a number then add it to the subtotal
+        try
+        {
+            double duration = std::stod(std::string(svDur));
+            subtotal += duration;
+        }
+        catch (const std::invalid_argument&)
+        {
+            //not a number
+            std::cerr << "Bad Duration: '" << std::string(svDur) << "'\n";
+        }
+
+    }
+    return subtotal;
 }
 
 void WindowClass::TestChargeOut(const std::vector<Maps>& rows)
