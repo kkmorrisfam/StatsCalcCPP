@@ -7,6 +7,7 @@
 #include <cctype>
 #include <chrono>
 #include <iomanip>
+#include <optional>
 
 #include <fmt/format.h>
 #include <imgui.h>
@@ -55,34 +56,6 @@ void WindowClass::Draw(std::string_view label)
 
     ImGui::End();  //must close what is opened
 }
-
-/**
- *1. need to have a two text boxes to import csv files;
-    collect month/year for stats
- * or one which will accept multiple csv files
- *2. read in csv file
-    store contents into data structure
-    variables: month & year
-    read by row matters file, store in map? add to vector? filter?
-    read by row events file, store in map? add to vector? filter?
- *3. write results to text file
-    if file is not there, creates it, if it is there, writes over the old one
-    write header with current date/time; month date of stats
-
- *4.Get list of opened cases within month/year input
-    Get subtotal by charge
- *5.Get list of closed cases withing month/year
-    Get subtotal of cases by charge
-    Get subtotal by charge and by plea
-*6. Get subtotal of hours by charge closed
-*7. Helper: filter matters by APCON in map?
-*8. Helper: filter events by APCON
-*9. Helper: get get closed matters and events
-*10.Helper: get opened cases
-*11.Helper: get charge count
-*12.Helper: get dispostion count of closed cases
-*13.Helper: get subtotal hours by charges of closed cases
- */
 
 void WindowClass::DrawInputTextFields()
 {
@@ -439,8 +412,8 @@ void WindowClass::ToUpperCase(std::string& string)
 void WindowClass::WriteToTextFile(std::string_view filename)
 {
     //to test - read and filter file
-    auto matterRows = ReadCsvRows(matterFileNameBuffer);
-    auto eventRows = ReadCsvRows(eventFileNameBuffer);
+    auto matterRows = ReadCsvRows(ResolveCsvPath(matterFileNameBuffer));
+    auto eventRows = ReadCsvRows(ResolveCsvPath(eventFileNameBuffer));
     auto filteredMatters = FilterApcon(matterRows);
     auto filteredEvents = FilterApcon(eventRows);
 
@@ -477,7 +450,7 @@ void WindowClass::WriteToTextFile(std::string_view filename)
     out << "Summary generated: " << std::put_time(std::localtime(&tt), "%Y-%m-%d%H:%M:%S") << "\n";
 
     //create temp report
-    std::filesystem::path matterPath{matterFileNameBuffer};
+/*    std::filesystem::path matterPath{matterFileNameBuffer};
 
 
     out << "Matters CSV: " << matterFileNameBuffer << std::endl;
@@ -499,7 +472,7 @@ void WindowClass::WriteToTextFile(std::string_view filename)
           << " closedMatters=" << closedMatters.size() << "\n";
 
     TestChargeOut(closedMatters);
-
+*/
     //get data for report
 
     //print open cases count (subtotaled by charge type) for the selected month/year
@@ -768,6 +741,72 @@ void WindowClass::TestChargeOut(const std::vector<Maps>& rows)
         std::cout << k << " : " << v << "\n";
     }
 
+}
+
+std::filesystem::path WindowClass::ResolveCsvPath(std::string_view text) const
+{
+    //had help with this, but needed something!!!
+    //If the user only enters a filename, tries a few option:
+    //Current Working Directory (CWD), sibling's Csv folder, parents of CWD
+    using std::filesystem::path;
+    using std::filesystem::exists;
+    path myPath{std::string(text)};
+
+    //check for absolute or already resolvable relative to CWD
+    if (myPath.is_absolute() && exists(myPath))
+    {
+        return myPath;
+    }
+    if (!myPath.is_absolute() && exists(myPath))
+    {
+        return std::filesystem::absolute(myPath);
+    }
+
+    //try sibling of the other file (events or matters)
+    //lambda [&] = capture by reference
+    //buffer to hold the "other" file path to compare to
+    auto try_base = [&](const char* buffer)->std::optional<path>
+    {
+        //make sure string is not empty/nullptr
+        if (buffer && buffer[0])
+        {
+            //convert buffer into file system path, then just get directory
+            path base = path(buffer).parent_path();
+            if (!base.empty())
+            {
+                //join base and directory of sibling
+                path fullPath = base / myPath;
+                //if it exists, return fullPath
+                if (exists(fullPath))
+                {
+                    //base + path of sibling
+                    return fullPath;
+                }
+            }
+        }
+        //else signal "not found"
+        return std::nullopt;
+    };
+
+    //use lambda function on both buffers
+    if (auto x = try_base(eventFileNameBuffer))  return *x;
+    if (auto x = try_base(matterFileNameBuffer)) return *x;
+
+
+    //walk up a few parents from CWD
+    path dir = std::filesystem::current_path();
+    for (int i=0; i < 3 && dir.has_parent_path(); ++i)
+    {
+        dir = dir.parent_path();
+        path fullPath = dir / myPath;  //add directory to myPath
+        if (exists(fullPath))
+        {
+            return fullPath;
+        }
+    }
+
+    //give back whatever we have;
+    return myPath;
 }
 
 void render(WindowClass &window_obj)

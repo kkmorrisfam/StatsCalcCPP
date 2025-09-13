@@ -47,7 +47,7 @@ private:
     int16_t GetDispositionCount(const std::vector<Maps>& matters, std::string_view charge, std::string_view disposition);
     double GetSubtotalHoursByCharges(const std::vector<Maps>& events, std::string_view charge);
 
-
+    std::filesystem::path ResolveCsvPath(std::string_view text) const;
 
 
     void TestFunction();
