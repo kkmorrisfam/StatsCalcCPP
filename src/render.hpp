@@ -42,7 +42,7 @@ private:
 
     std::vector<Maps> GetClosedCases(const std::vector<Maps>& list, int inputMonth, int inputYear);
     // std::vector<Maps> GetClosedEvents(const std::vector<Maps>& events, MonthYear monthYear);
-    std::vector<Maps> GetOpenedCases(const std::vector<Maps>& matters, MonthYear monthYear);
+    std::vector<Maps> GetOpenedCases(const std::vector<Maps>& list, int inputMonth, int inputYear);
     int16_t GetChargeCount(const std::vector<Maps>& matters, std::string_view charge);
     int16_t GetDispositionCount(const std::vector<Maps>& matters, std::string_view charge, std::string_view disposition);
     double GetSubtotalHoursByCharges(const std::vector<Maps>& events, std::string_view charge);
@@ -65,6 +65,7 @@ private:
     int year_selected_idx = 0;
 
     std::string SummaryPath;
+    //std::vector<string> Alert;
 
 };
 

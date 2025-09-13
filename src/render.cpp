@@ -529,15 +529,10 @@ void WindowClass::WriteToTextFile(std::string_view filename)
     }
 
     out << std::flush;
-    std::cout << "Wrote Summary to: " << filePath << std::endl;
+//    std::cout << "Wrote Summary to: " << filePath << std::endl;
 
     const auto absPath = std::filesystem::absolute(filePath);
     SummaryPath = absPath.string();
-
-
-    //const std::string pathStr = filePath.string();
-    //ImGui::Text("Wrote Summary to:  %s", pathStr.c_str());
-    // ImGui::Text(filePath);
 }
 
 
@@ -562,10 +557,12 @@ std::vector<Maps> WindowClass::GetClosedCases(const std::vector<Maps>& list, int
         // if Closed" key not found & key "Closed" value empty, skip to next iteration
         if(itClosed == r.end() || itClosed->second.empty()) continue;
 
-        //if there's a value and can parse into MonthYear struct, then
+        //check for truthy - if there's a value and can parse into MonthYear struct, then
+        //get the value from "Closed" key, put results in MonthYear structure variable
         if(auto monYear = GetMonthYear(itClosed->second))
         {
-            //get the value from "Closed" key, put results in MonthYear structure variable
+
+            //get value from parameter and pass into monYear
             //compare input with column data
             if (monYear->month == inputMonth && monYear->year == inputYear)
             {
@@ -582,41 +579,41 @@ std::vector<Maps> WindowClass::GetClosedCases(const std::vector<Maps>& list, int
 
     return data;  //return all matching "rows" as maps in vector
 }
-/*
-std::vector<Maps> WindowClass::GetClosedEvents(const std::vector<Maps>& events, MonthYear monthYear)
+
+std::vector<Maps> WindowClass::GetOpenedCases(const std::vector<Maps>& list, int inputMonth, int inputYear)
 {
     //create an empty vector of maps to fill and return
     std::vector<Maps> data;
+
     //pre-allocate memory for data before loop
-    data.reserve(events.size());
+    data.reserve(list.size());
 
     //iterate through each map to filter on month and year
-    for (const auto&r : matters)
+    for (const auto&r : list)
     {
-        //lookup on key "Closed" - column header
-        auto itClosed = r.find("Closed");
-        // if no "Closed" key found or no key "Closed" value found, continue
-        if (itClosed != r.end() && !itClosed -> second.empty())
-        {
-            //get the value from "Closed" key, put results in MonthYear structure variable
-            auto monYear = GetMonthYear(itClosed->second);
+        //look up on key "Opened" - column header
+        auto itOpened = r.find("Opened");
 
+        //if "Opened" key not found & key "Opened" value empty, skip to next iteration
+        if (itOpened == r.end() || itOpened->second.empty()) continue;
+
+        //check for truthy - if there's a value and can parse into MonthYear struct, then
+        //get value from "Opened"
+        if(auto monYear = GetMonthYear(itOpened->second))
+        {
+            //get value from parameter and pass into monYear
             //compare input with column data
             if (monYear->month == inputMonth && monYear->year == inputYear)
             {
-                data.push_back(r); //add "row" or map to vector
+                //if all true - add "row"
+                data.push_back(r);
             }
+        } else{
+            //this prints for each row that has bad data.  change to something else?
+            std::cerr << "Bad Opened date: " <<itOpened->second<< std::endl;
         }
     }
 
-
-    return data;  //return all matching "rows" as maps in vector
-}
-*/
-std::vector<Maps> WindowClass::GetOpenedCases(const std::vector<Maps>& matters, MonthYear monthYear)
-{
-    //create an empty vector of maps to fill and return
-    std::vector<Maps> data;
 
     return data;  //return all matching "rows" as maps in vector
 }
