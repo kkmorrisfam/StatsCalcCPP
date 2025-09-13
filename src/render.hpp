@@ -65,7 +65,7 @@ private:
     int year_selected_idx = 0;
 
     std::string SummaryPath;
-    //std::vector<string> Alert;
+    std::vector<std::string> Alert;
 
 };
 

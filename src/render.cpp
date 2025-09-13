@@ -52,12 +52,25 @@ void WindowClass::Draw(std::string_view label)
 
     ImGui::Spacing();
     ImGui::Separator();
-    if (!SummaryPath.empty()) {
+    if (!SummaryPath.empty())
+    {
         ImGui::TextWrapped("Wrote Summary to: %s", SummaryPath.c_str());
         ImGui::SameLine();
+
     } else {
         ImGui::TextDisabled("No report generated yet.");
     }
+
+    // Not working yet.
+    // Should print error if csv file not found or opened
+    // if (!Alert.empty())
+    // {
+    //     for (auto msg : Alert)
+    //     {
+    //         ImGui::TextWrapped(msg.c_str());
+    //     }
+
+    // }
 
     // TestFunction();
     //static bool didTest = false;
@@ -335,7 +348,11 @@ std::vector<Maps> WindowClass::ReadCsvRows(const std::filesystem::path& filename
     //double check
     if(!file.is_open())
     {
+        //get path for filename, add to alert vector
+        const std::string message = filename.string();
+        Alert.push_back(message);
         std::cerr << "Could not open: " << filename << "\n";
+
         return data;
     }
 
@@ -571,6 +588,8 @@ std::vector<Maps> WindowClass::GetClosedCases(const std::vector<Maps>& list, int
 
         } else
         {
+            //don't print to screen because there are cells with "bad data",
+            //it's ok, just move to next row
             std::cerr << "Bad Closed date: " <<itClosed->second<< std::endl;
 
         }
