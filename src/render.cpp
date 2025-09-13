@@ -540,6 +540,10 @@ void WindowClass::WriteToTextFile(std::string_view filename)
     for (auto charges : CHARGES_LIST)
     {
         double subtotal = GetSubtotalHoursByCharges(closedEvents, charges);
+        if (subtotal > 0.0)
+        {
+            out << charges << ": " << subtotal << '\n';
+        }
     }
 
     out << std::flush;
