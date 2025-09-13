@@ -50,9 +50,18 @@ void WindowClass::Draw(std::string_view label)
     DrawWriteFileButton();
 
 
+    ImGui::Spacing();
+    ImGui::Separator();
+    if (!SummaryPath.empty()) {
+        ImGui::TextWrapped("Wrote Summary to: %s", SummaryPath.c_str());
+        ImGui::SameLine();
+    } else {
+        ImGui::TextDisabled("No report generated yet.");
+    }
+
     // TestFunction();
-    static bool didTest = false;
-    if (!didTest) { TestFunction(); didTest = true; }
+    //static bool didTest = false;
+    //if (!didTest) { TestFunction(); didTest = true; }
 
     ImGui::End();  //must close what is opened
 }
@@ -142,7 +151,7 @@ void WindowClass::DrawWriteFileButton()
     //start the text disabled block
     ImGui::BeginDisabled(!ready);
     //generate button to generate report
-    if(ImGui::Button("Generate Report", ImVec2(200, 100)))
+    if(ImGui::Button("Generate Report", ImVec2(200, 0)))
     {
         WriteToTextFile(resultsOutputFileNameBuffer);
         // WriteToTextFile(R"(C:\Users\Kerri\Documents\BYU 310\StatsCalcCPP\matters_summary)");
@@ -522,6 +531,13 @@ void WindowClass::WriteToTextFile(std::string_view filename)
     out << std::flush;
     std::cout << "Wrote Summary to: " << filePath << std::endl;
 
+    const auto absPath = std::filesystem::absolute(filePath);
+    SummaryPath = absPath.string();
+
+
+    //const std::string pathStr = filePath.string();
+    //ImGui::Text("Wrote Summary to:  %s", pathStr.c_str());
+    // ImGui::Text(filePath);
 }
 
 

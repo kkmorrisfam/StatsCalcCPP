@@ -64,6 +64,8 @@ private:
     int month_selected_idx = 0;
     int year_selected_idx = 0;
 
+    std::string SummaryPath;
+
 };
 
 void render(WindowClass &window_obj);
