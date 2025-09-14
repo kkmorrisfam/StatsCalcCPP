@@ -20,7 +20,7 @@ VSCode
 Helpful websites:
 
 - [cplusplus](https://cplusplus.com)
-- [Gormanalysis](https://www.gormanalysis.com/blog/eading-and-writing-csv-files-with-cpp/)
+- [Gormanalysis](https://www.gormanalysis.com/blog/reading-and-writing-csv-files-with-cpp/)
 - [ImGui Library](https://github.com/ocornut/imgui)
 - [Studyplan](https://www.studyplan.dev/pro-cpp)
 - [Microsoft](https://learn.microsoft.com/en-us/cpp)
