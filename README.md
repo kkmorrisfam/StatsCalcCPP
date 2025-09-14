@@ -8,10 +8,7 @@ This project creates a GUI interface that enables a user to enter two CSV files 
 
 I work for a law office and need to report certain data to the county each month.  I need to report how many cases were appointed by the court in criminal matters, what the charges were, and report the count on those types.  I need to do something similar for cases that have closed in the reporting month but also include totals of how many total hours spent on felony cases, and how many felonies were closed that month as an example.  These are some of the values that I needed to calculate.  In doing so I handled date fields "xx/xx/xxxx" and time or duration amounts that needed to be tallied along with strings that needed a total count done.
 
-
 {Provide a link to your YouTube demonstration. It should be a 4-5 minute demo of the software running and a walkthrough of the code. Focus should be on sharing what you learned about the language syntax.}
-
-[Software Demo Video](http://youtube.link.goes.here)
 
 ## Development Environment
 
@@ -23,13 +20,13 @@ VSCode
 ## Useful Websites
 
 Helpful websites:
+
 - [cplusplus](https://cplusplus.com)
 - [Gormanalysis](https://www.gormanalysis.com/blog/eading-and-writing-csv-files-with-cpp/)
 - [ImGui Library](https://github.com/ocornut/imgui)
 - [Studyplan](https://www.studyplan.dev/pro-cpp)
 - [Microsoft](https://learn.microsoft.com/en-us/cpp)
 - [Udemy - Interactive GUI with C++ and ImGui (practical examples)](https://www.udemy.com/course/interactive-gui-with-c-and-imgui-practical-examples/ )
-
 
 ## Future Work
 
