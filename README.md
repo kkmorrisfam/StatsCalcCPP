@@ -23,12 +23,12 @@ VSCode
 ## Useful Websites
 
 Helpful websites:
-- cplusplus (https://cplusplus.com)
-- Gormanalysis (https://www.gormanalysis.com/blog/eading-and-writing-csv-files-with-cpp/)
-- ImGui Library (https://github.com/ocornut/imgui (Dear ImGui library)
-- Studyplan (https://www.studyplan.dev/pro-cpp/file-paths)
-- Microsoft (https://learn.microsoft.com/en-us/cpp/standard-library/filesystem?view=msvc-170)
-- Udemy (tutorial on ImGui,  Jan Schaffranek: https://www.udemy.com/course/interactive-gui-with-c-and-imgui-practical-examples/ )
+- [cplusplus] (https://cplusplus.com)
+- [Gormanalysis](https://www.gormanalysis.com/blog/eading-and-writing-csv-files-with-cpp/)
+- [ImGui Library] (https://github.com/ocornut/imgui)
+- [Studyplan] (https://www.studyplan.dev/pro-cpp/file-paths)
+- [Microsoft] (https://learn.microsoft.com/en-us/cpp/standard-library/filesystem?view=msvc-170)
+- [Udemy] (https://www.udemy.com/course/interactive-gui-with-c-and-imgui-practical-examples/ )
 
 
 ## Future Work

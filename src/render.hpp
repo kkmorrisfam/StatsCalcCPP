@@ -58,7 +58,7 @@ private:
     char matterFileNameBuffer[512]{};  //InputText expects char array
     char eventFileNameBuffer[512]{};
     char resultsOutputFileNameBuffer[512]{};
-    const char* months[12] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "Decmeber"};
+    const char* months[12] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
     const char* years[13] = {"2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"};
 
     int month_selected_idx = 0;
