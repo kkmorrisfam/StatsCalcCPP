@@ -437,14 +437,18 @@ void WindowClass::ToUpperCase(std::string& string)
 
 void WindowClass::WriteToTextFile(std::string_view filename)
 {
-    //to test - read and filter file
+    //read and filter file
     auto matterRows = ReadCsvRows(ResolveCsvPath(matterFileNameBuffer));
     auto eventRows = ReadCsvRows(ResolveCsvPath(eventFileNameBuffer));
     auto filteredMatters = FilterApcon(matterRows);
     auto filteredEvents = FilterApcon(eventRows);
 
+    //get an integer to compare from input values
     int inputMonth = SelectedMonthNumber();
     int inputYear = SelectedYearNumber();
+
+    //get vector of filtered maps
+    auto openedMatters = GetOpenedCases(filteredMatters, inputMonth, inputYear);
     auto closedMatters = GetClosedCases(filteredMatters, inputMonth, inputYear);
     auto closedEvents = GetClosedCases(filteredEvents, inputMonth, inputYear);
 
@@ -504,7 +508,12 @@ void WindowClass::WriteToTextFile(std::string_view filename)
     //print open cases count (subtotaled by charge type) for the selected month/year
     out << "\n" << "Opened Cases for " << inputMonth << "/" << inputYear << "\n";
 //*************print opened cases count by charges
-
+    //iterate through Charges array to print subtotals
+    for (auto charges : CHARGES_LIST)
+    {
+        int16_t openedChargesCount = GetChargeCount(openedMatters, charges);
+        out << charges << ": " << openedChargesCount << '\n';
+    }
 
 
     //print closed cases count (subtotaled by charge type) for selected month/year
